@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GEO SIGNAL — Geopolitical Intelligence Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --bg2: #0f1215;
+    --bg3: #141820;
+    --border: #1e2530;
+    --border-bright: #2a3445;
+    --text: #c8d4e0;
+    --text-dim: #5a6a7a;
+    --text-bright: #e8f0f8;
+    --green: #00e676;
+    --green-dim: #00e67622;
+    --red: #ff4444;
+    --red-dim: #ff444422;
+    --amber: #ffaa00;
+    --amber-dim: #ffaa0022;
+    --blue: #4488ff;
+    --blue-dim: #4488ff22;
+    --teal: #00ccd4;
+    --teal-dim: #00ccd422;
+    --purple: #aa88ff;
+    --purple-dim: #aa88ff22;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-mark {
+    width: 28px; height: 28px;
+    border: 1.5px solid var(--teal);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 4px;
+  }
+  .logo-mark span {
+    background: var(--teal);
+    display: block;
+  }
+  .logo-mark span:nth-child(2) { opacity: 0.4; }
+  .logo-mark span:nth-child(3) { opacity: 0.6; }
+  .logo-text {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: var(--text-bright);
+  }
+  .logo-sub {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    margin-top: 1px;
+  }
+  .header-meta {
+    display: flex; align-items: center; gap: 20px;
+  }
+  .clock {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+  .clock span { color: var(--teal); }
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* NAV TABS */
+  nav {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 0 20px;
+  }
+  nav button {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  nav button:hover { color: var(--text); }
+  nav button.active {
+    color: var(--teal);
+    border-bottom-color: var(--teal);
+  }
+
+  /* MAIN LAYOUT */
+  .main { padding: 16px 20px; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ALERT BANNER */
+  .alert-banner {
+    background: #ff44440d;
+    border: 1px solid #ff444433;
+    border-left: 3px solid var(--red);
+    padding: 8px 14px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: fadeIn 0.3s;
+  }
+  .alert-banner .alert-tag {
+    background: var(--red);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    padding: 2px 6px;
+    flex-shrink: 0;
+  }
+  .alert-banner .alert-text { color: var(--text-bright); font-size: 11px; }
+  .alert-banner .alert-time { color: var(--text-dim); font-size: 10px; margin-left: auto; flex-shrink: 0; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+
+  /* GRID LAYOUTS */
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+
+  /* PANEL */
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 14px;
+  }
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-title {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .panel-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border: 1px solid var(--border-bright);
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  /* STAT CARDS */
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .stat-card.green::before { background: var(--green); }
+  .stat-card.red::before { background: var(--red); }
+  .stat-card.amber::before { background: var(--amber); }
+  .stat-card.blue::before { background: var(--blue); }
+  .stat-card.teal::before { background: var(--teal); }
+  .stat-card.purple::before { background: var(--purple); }
+  .stat-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text-bright);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-delta {
+    font-size: 10px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .stat-delta.up { color: var(--green); }
+  .stat-delta.down { color: var(--red); }
+  .stat-delta.flat { color: var(--text-dim); }
+  .stat-source { font-size: 9px; color: var(--text-dim); margin-top: 4px; }
+
+  /* SIGNAL ROWS */
+  .signal-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .signal-row:last-child { border-bottom: none; }
+  .signal-row:hover { margin: 0 -14px; padding: 7px 14px; background: #ffffff05; }
+  .signal-name { flex: 1; color: var(--text); font-size: 11px; }
+  .signal-value { font-size: 11px; color: var(--text-bright); min-width: 70px; text-align: right; }
+  .signal-change { font-size: 10px; min-width: 55px; text-align: right; }
+  .signal-change.up { color: var(--green); }
+  .signal-change.down { color: var(--red); }
+  .signal-zscore {
+    font-size: 10px;
+    min-width: 45px;
+    text-align: right;
+  }
+  .signal-bar-wrap { width: 60px; height: 4px; background: var(--border); border-radius: 0; }
+  .signal-bar { height: 100%; transition: width 0.5s; }
+  .flag-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  }
+  .flag-dot.alert { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .flag-dot.watch { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+  .flag-dot.ok { background: var(--border-bright); }
+
+  /* HEATMAP */
+  .heatmap {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-top: 4px;
+  }
+  .heatmap-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .heatmap-cell:hover { outline: 1px solid rgba(255,255,255,0.3); }
+  .heatmap-labels {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-bottom: 3px;
+  }
+  .heatmap-label {
+    text-align: center;
+    font-size: 8px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  /* MINI CHART */
+  .sparkline { width: 100%; height: 48px; }
+
+  /* EVENT CALENDAR */
+  .event-list { display: flex; flex-direction: column; gap: 8px; }
+  .event-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 8px 10px;
+    background: var(--bg3);
+    border-left: 2px solid var(--border-bright);
+    transition: all 0.15s;
+  }
+  .event-item:hover { border-left-color: var(--teal); background: #ffffff03; }
+  .event-item.critical { border-left-color: var(--red); }
+  .event-item.high { border-left-color: var(--amber); }
+  .event-item.medium { border-left-color: var(--blue); }
+  .event-date { min-width: 64px; }
+  .event-date-main { font-size: 11px; color: var(--text-bright); font-weight: 500; }
+  .event-date-days { font-size: 9px; color: var(--text-dim); margin-top: 1px; }
+  .event-body { flex: 1; }
+  .event-title { font-size: 11px; color: var(--text-bright); margin-bottom: 2px; }
+  .event-meta { font-size: 10px; color: var(--text-dim); display: flex; gap: 8px; }
+  .event-tag {
+    font-size: 8px; letter-spacing: 0.1em;
+    padding: 1px 5px;
+    border: 1px solid var(--border-bright);
+    color: var(--text-dim);
+  }
+  .event-tag.critical { border-color: #ff444444; color: var(--red); }
+  .event-tag.high { border-color: #ffaa0044; color: var(--amber); }
+  .event-tag.medium { border-color: #4488ff44; color: var(--blue); }
+
+  /* ALERTS LOG */
+  .alert-log-item {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .alert-log-item:last-child { border-bottom: none; }
+  .alert-sev {
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    padding: 2px 5px;
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+  .alert-sev.HIGH { background: var(--red-dim); color: var(--red); border: 1px solid var(--red); }
+  .alert-sev.MED { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber); }
+  .alert-sev.LOW { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue); }
+  .alert-log-text { flex: 1; font-size: 11px; color: var(--text); line-height: 1.5; }
+  .alert-log-text strong { color: var(--text-bright); }
+  .alert-log-time { font-size: 9px; color: var(--text-dim); flex-shrink: 0; margin-top: 1px; }
+
+  /* COMPOSITE SCORE */
+  .score-ring-wrap {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 10px 0;
+    gap: 6px;
+  }
+  .score-number { font-size: 42px; font-weight: 300; color: var(--text-bright); line-height: 1; }
+  .score-label { font-size: 9px; letter-spacing: 0.2em; color: var(--text-dim); }
+  .score-bar-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .score-bar-row:last-child { border-bottom: none; }
+  .score-bar-name { font-size: 10px; color: var(--text-dim); min-width: 110px; }
+  .score-bar-track { flex: 1; height: 3px; background: var(--border); }
+  .score-bar-fill { height: 100%; transition: width 0.8s ease; }
+  .score-bar-val { font-size: 10px; color: var(--text-bright); min-width: 28px; text-align: right; }
+
+  /* TOOLTIP */
+  .tooltip {
+    position: fixed;
+    background: var(--bg3);
+    border: 1px solid var(--border-bright);
+    padding: 6px 10px;
+    font-size: 10px;
+    color: var(--text);
+    pointer-events: none;
+    display: none;
+    z-index: 9998;
+    max-width: 200px;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 600px) {
+    .grid-3, .grid-4, .grid-2 { grid-template-columns: 1fr; }
+  }
+
+  .section-title {
+    font-size: 9px; letter-spacing: 0.2em; color: var(--text-dim);
+    text-transform: uppercase; margin-bottom: 10px; margin-top: 16px;
+  }
+
+  svg text { font-family: var(--mono); }
+
+  .blink { animation: blink 1.2s step-end infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+</style>
+</head>
+<body>
+
+<div class="tooltip" id="tooltip"></div>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <div>
+      <div class="logo-text">GEO SIGNAL</div>
+      <div class="logo-sub">GEOPOLITICAL INTELLIGENCE TERMINAL</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <div class="clock">UTC <span id="clock-time">--:--:--</span></div>
+    <div class="clock">SESSION <span>2026-04-30</span></div>
+    <div class="status-dot"></div>
+    <div class="clock"><span class="blink">■</span> LIVE</div>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('signals')">SIGNALS</button>
+  <button onclick="showTab('calendar')">MACRO CALENDAR</button>
+  <button onclick="showTab('heatmap')">RISK HEATMAP</button>
+  <button onclick="showTab('alerts')">ALERTS LOG</button>
+  <button onclick="showTab('composite')">COMPOSITE SCORE</button>
+</nav>
+
+<div class="main">
+
+  <!-- ========== TAB: SIGNALS ========== -->
+  <div id="tab-signals" class="tab-content active">
+
+    <div id="alert-banner" class="alert-banner">
+      <div class="alert-tag">ALERT</div>
+      <div class="alert-text" id="alert-banner-text">Brent Crude +4.2σ deviation — 3-month high. Iran/Israel shipping lane tension flagged by GDELT.</div>
+      <div class="alert-time" id="alert-banner-time">14:32 UTC</div>
+    </div>
+
+    <!-- KPI row -->
+    <div class="grid-4">
+      <div class="stat-card red">
+        <div class="stat-label">Brent Crude (USD)</div>
+        <div class="stat-value" id="kpi-brent">$97.40</div>
+        <div class="stat-delta down" id="kpi-brent-d">▲ +4.2% (1D)</div>
+        <div class="stat-source">src: Yahoo Finance</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-label">USD/EM Stress Index</div>
+        <div class="stat-value" id="kpi-fx">2.31</div>
+        <div class="stat-delta down" id="kpi-fx-d">▲ +0.18 (1D)</div>
+        <div class="stat-source">src: FRED / DXY basket</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Baltic Dry Index</div>
+        <div class="stat-value" id="kpi-bdi">1,842</div>
+        <div class="stat-delta up" id="kpi-bdi-d">▼ −1.3% (1D)</div>
+        <div class="stat-source">src: Baltic Exchange</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-label">Geo Risk Score</div>
+        <div class="stat-value" id="kpi-score">67</div>
+        <div class="stat-delta down" id="kpi-score-d">▲ +8 pts (1W)</div>
+        <div class="stat-source">composite / 100</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Commodities -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Commodities & FX</div>
+          <div class="panel-badge">FRED · Yahoo Finance</div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot alert"></div>
+          <div class="signal-name">Brent Crude (USD/bbl)</div>
+          <div class="signal-value" id="s-brent">$97.40</div>
+          <div class="signal-change down" id="s-brent-c">+4.2%</div>
+          <div class="signal-zscore" style="color:var(--red)" id="s-brent-z">z: +2.8</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:85%;background:var(--red)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot watch"></div>
+          <div class="signal-name">Gold (USD/oz)</div>
+          <div class="signal-value" id="s-gold">$2,341</div>
+          <div class="signal-change down" id="s-gold-c">+1.8%</div>
+          <div class="signal-zscore" style="color:var(--amber)" id="s-gold-z">z: +1.9</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:62%;background:var(--amber)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot watch"></div>
+          <div class="signal-name">Wheat (USD/bu)</div>
+          <div class="signal-value" id="s-wheat">$618</div>
+          <div class="signal-change down" id="s-wheat-c">+2.4%</div>
+          <div class="signal-zscore" style="color:var(--amber)" id="s-wheat-z">z: +1.7</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:55%;background:var(--amber)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot ok"></div>
+          <div class="signal-name">Copper (USD/t)</div>
+          <div class="signal-value" id="s-copper">$8,910</div>
+          <div class="signal-change up" id="s-copper-c">−0.4%</div>
+          <div class="signal-zscore" style="color:var(--text-dim)" id="s-copper-z">z: +0.3</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:20%;background:var(--green)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot watch"></div>
+          <div class="signal-name">USD/TRY</div>
+          <div class="signal-value" id="s-try">32.41</div>
+          <div class="signal-change down" id="s-try-c">+1.1%</div>
+          <div class="signal-zscore" style="color:var(--amber)" id="s-try-z">z: +1.5</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:50%;background:var(--amber)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot ok"></div>
+          <div class="signal-name">USD/CNH (offshore)</div>
+          <div class="signal-value" id="s-cnh">7.238</div>
+          <div class="signal-change up" id="s-cnh-c">−0.1%</div>
+          <div class="signal-zscore" style="color:var(--text-dim)" id="s-cnh-z">z: −0.4</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:12%;background:var(--green)"></div></div>
+        </div>
+      </div>
+
+      <!-- Shipping + Bonds -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Shipping, Bonds & Power</div>
+          <div class="panel-badge">FRED · EIA · Baltic</div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot ok"></div>
+          <div class="signal-name">Baltic Dry Index</div>
+          <div class="signal-value" id="s-bdi">1,842</div>
+          <div class="signal-change up" id="s-bdi-c">−1.3%</div>
+          <div class="signal-zscore" style="color:var(--text-dim)" id="s-bdi-z">z: −0.6</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:18%;background:var(--green)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot watch"></div>
+          <div class="signal-name">Suez Transit Volume</div>
+          <div class="signal-value" id="s-suez">−38%</div>
+          <div class="signal-change down" id="s-suez-c">−38% YoY</div>
+          <div class="signal-zscore" style="color:var(--amber)" id="s-suez-z">z: −2.1</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:70%;background:var(--amber)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot watch"></div>
+          <div class="signal-name">US 10Y–2Y Spread (bp)</div>
+          <div class="signal-value" id="s-spread">−18bp</div>
+          <div class="signal-change down" id="s-spread-c">−5bp (1W)</div>
+          <div class="signal-zscore" style="color:var(--amber)" id="s-spread-z">z: −1.6</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:52%;background:var(--amber)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot alert"></div>
+          <div class="signal-name">EU 10Y Bond Spread (DE/IT)</div>
+          <div class="signal-value" id="s-bunds">198bp</div>
+          <div class="signal-change down" id="s-bunds-c">+22bp (1M)</div>
+          <div class="signal-zscore" style="color:var(--red)" id="s-bunds-z">z: +2.3</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:75%;background:var(--red)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot ok"></div>
+          <div class="signal-name">EU Power Price (€/MWh)</div>
+          <div class="signal-value" id="s-power">€89</div>
+          <div class="signal-change up" id="s-power-c">−3.1%</div>
+          <div class="signal-zscore" style="color:var(--text-dim)" id="s-power-z">z: +0.8</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:30%;background:var(--green)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot watch"></div>
+          <div class="signal-name">Henry Hub Gas (USD/MMBtu)</div>
+          <div class="signal-value" id="s-gas">$2.84</div>
+          <div class="signal-change up" id="s-gas-c">+0.7%</div>
+          <div class="signal-zscore" style="color:var(--text-dim)" id="s-gas-z">z: +0.5</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:25%;background:var(--teal)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sparklines -->
+    <div class="panel" style="margin-bottom:16px">
+      <div class="panel-header">
+        <div class="panel-title">30-Day Signal Trend</div>
+        <div class="panel-badge">SIMULATED · src: FRED/Yahoo</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+        <div>
+          <div style="font-size:9px;color:var(--text-dim);letter-spacing:0.1em;margin-bottom:4px">BRENT CRUDE</div>
+          <canvas class="sparkline" id="spark-brent"></canvas>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--text-dim);letter-spacing:0.1em;margin-bottom:4px">GOLD</div>
+          <canvas class="sparkline" id="spark-gold"></canvas>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--text-dim);letter-spacing:0.1em;margin-bottom:4px">EU BOND SPREAD</div>
+          <canvas class="sparkline" id="spark-spread"></canvas>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--text-dim);letter-spacing:0.1em;margin-bottom:4px">GEO RISK SCORE</div>
+          <canvas class="sparkline" id="spark-score"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prediction Markets + Sentiment -->
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Prediction Markets</div>
+          <div class="panel-badge">Polymarket · Metaculus</div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot alert"></div>
+          <div class="signal-name" style="flex:1.5">Iran nuclear deal before Q3</div>
+          <div class="signal-value">18%</div>
+          <div class="signal-change down">−7pp (1W)</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:18%;background:var(--red)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot watch"></div>
+          <div class="signal-name" style="flex:1.5">Russia ceasefire by Dec 2026</div>
+          <div class="signal-value">31%</div>
+          <div class="signal-change down">+4pp (1W)</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:31%;background:var(--amber)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot watch"></div>
+          <div class="signal-name" style="flex:1.5">Taiwan Strait incident 2026</div>
+          <div class="signal-value">22%</div>
+          <div class="signal-change down">+2pp (1W)</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:22%;background:var(--amber)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot ok"></div>
+          <div class="signal-name" style="flex:1.5">Fed cut before Sep 2026</div>
+          <div class="signal-value">61%</div>
+          <div class="signal-change up">−3pp (1W)</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:61%;background:var(--green)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot ok"></div>
+          <div class="signal-name" style="flex:1.5">Oil >$100 before Dec 2026</div>
+          <div class="signal-value">44%</div>
+          <div class="signal-change down">+9pp (1M)</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:44%;background:var(--amber)"></div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">GDELT News Intensity</div>
+          <div class="panel-badge">GDELT · 48hr rolling</div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot alert"></div>
+          <div class="signal-name">Middle East conflict coverage</div>
+          <div class="signal-value">9.2 / 10</div>
+          <div class="signal-change down">▲ +1.8</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:92%;background:var(--red)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot watch"></div>
+          <div class="signal-name">Sanctions / trade war tone</div>
+          <div class="signal-value">6.8 / 10</div>
+          <div class="signal-change down">▲ +0.6</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:68%;background:var(--amber)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot watch"></div>
+          <div class="signal-name">Russia/Ukraine escalation</div>
+          <div class="signal-value">7.1 / 10</div>
+          <div class="signal-change up">▼ −0.3</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:71%;background:var(--amber)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot ok"></div>
+          <div class="signal-name">China economic stimulus</div>
+          <div class="signal-value">5.4 / 10</div>
+          <div class="signal-change up">▼ −0.2</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:54%;background:var(--blue)"></div></div>
+        </div>
+        <div class="signal-row">
+          <div class="flag-dot ok"></div>
+          <div class="signal-name">Global election uncertainty</div>
+          <div class="signal-value">6.0 / 10</div>
+          <div class="signal-change down">▲ +0.4</div>
+          <div class="signal-bar-wrap"><div class="signal-bar" style="width:60%;background:var(--purple)"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-signals -->
+
+  <!-- ========== TAB: CALENDAR ========== -->
+  <div id="tab-calendar" class="tab-content">
+    <div class="grid-2">
+      <div>
+        <div class="section-title" style="margin-top:0">Upcoming Elections</div>
+        <div class="event-list" id="elections-list"></div>
+      </div>
+      <div>
+        <div class="section-title" style="margin-top:0">Central Bank & Policy Events</div>
+        <div class="event-list" id="cb-list"></div>
+      </div>
+    </div>
+    <div style="margin-top:4px">
+      <div class="section-title">Geopolitical Summits & Key Dates</div>
+      <div class="event-list" id="geo-list"></div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: HEATMAP ========== -->
+  <div id="tab-heatmap" class="tab-content">
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Region × Signal Matrix</div>
+          <div class="panel-badge">composite stress / 10</div>
+        </div>
+        <div id="heatmap-region"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">30-Day Risk Evolution</div>
+          <div class="panel-badge">daily composite</div>
+        </div>
+        <canvas id="risk-chart" style="width:100%;height:180px"></canvas>
+        <div style="margin-top:12px">
+          <div class="section-title" style="margin-top:0">Signal Correlation (last 30D)</div>
+          <div id="corr-matrix"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: ALERTS ========== -->
+  <div id="tab-alerts" class="tab-content">
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Alert Log</div>
+          <div class="panel-badge">last 48 hours</div>
+        </div>
+        <div id="alert-log"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Slack Webhook Preview</div>
+          <div class="panel-badge">simulated output</div>
+        </div>
+        <div style="background:var(--bg3);padding:12px;font-size:11px;line-height:1.7;border:1px solid var(--border)">
+          <div style="color:var(--text-dim);font-size:9px;letter-spacing:0.1em;margin-bottom:8px">SAMPLE SLACK MESSAGE · #geo-alerts</div>
+          <div style="border-left:3px solid var(--red);padding:8px 12px;background:#ff444408">
+            <div style="color:var(--red);font-size:10px;font-weight:600;margin-bottom:4px">🚨 GEO SIGNAL ALERT — HIGH</div>
+            <div style="color:var(--text-bright)">*Brent Crude* crossed 2.5σ threshold</div>
+            <div style="color:var(--text-dim)">Current: $97.40 | 90D avg: $84.20 | z-score: +2.8</div>
+            <div style="color:var(--text-dim)">Trigger: GDELT Middle East coverage index also elevated (9.2/10)</div>
+            <div style="color:var(--text-dim);margin-top:6px">Linked signals: Gold +1.9σ · Wheat +1.7σ · FX stress +1.8σ</div>
+            <div style="color:var(--teal);margin-top:6px;font-size:10px">→ Combined signal cluster suggests commodity supply shock thesis</div>
+          </div>
+          <div style="margin-top:10px;border-left:3px solid var(--amber);padding:8px 12px;background:#ffaa0008">
+            <div style="color:var(--amber);font-size:10px;font-weight:600;margin-bottom:4px">⚠️ GEO SIGNAL ALERT — MEDIUM</div>
+            <div style="color:var(--text-bright)">*EU IT/DE Spread* widening trend</div>
+            <div style="color:var(--text-dim)">Current: 198bp | 3M avg: 165bp | Δ1M: +22bp</div>
+            <div style="color:var(--text-dim)">Context: Italian fiscal concerns + ECB meeting in 8 days</div>
+          </div>
+          <div style="margin-top:10px;font-size:10px;color:var(--text-dim)">
+            📊 Daily digest: <span style="color:var(--text)">3 ALERT · 4 WATCH · 5 NORMAL</span><br>
+            🔗 Dashboard: geo-signal.internal | Python 3.12 · SQLite · FRED API
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <div class="panel-header" style="margin-bottom:8px">
+            <div class="panel-title">Alert Thresholds (configurable)</div>
+          </div>
+          <div class="signal-row"><div class="signal-name">z-score trigger (HIGH)</div><div class="signal-value" style="color:var(--red)">≥ ±2.5σ</div></div>
+          <div class="signal-row"><div class="signal-name">z-score trigger (MEDIUM)</div><div class="signal-value" style="color:var(--amber)">≥ ±1.5σ</div></div>
+          <div class="signal-row"><div class="signal-name">Cluster trigger</div><div class="signal-value" style="color:var(--purple)">3+ correlated signals</div></div>
+          <div class="signal-row"><div class="signal-name">Rolling window</div><div class="signal-value">90 days</div></div>
+          <div class="signal-row"><div class="signal-name">Refresh cadence</div><div class="signal-value">Every 4 hours</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: COMPOSITE ========== -->
+  <div id="tab-composite" class="tab-content">
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Composite Geo Risk Score</div>
+          <div class="panel-badge">weighted · /100</div>
+        </div>
+        <div class="score-ring-wrap">
+          <div style="position:relative;width:140px;height:140px">
+            <svg width="140" height="140" viewBox="0 0 140 140">
+              <circle cx="70" cy="70" r="58" fill="none" stroke="#1e2530" stroke-width="10"/>
+              <circle cx="70" cy="70" r="58" fill="none" stroke="var(--red)" stroke-width="10"
+                stroke-dasharray="364" stroke-dashoffset="120" stroke-linecap="butt"
+                transform="rotate(-90 70 70)" id="score-arc"/>
+            </svg>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+              <div class="score-number" id="composite-number">67</div>
+              <div class="score-label">/ 100</div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--red);letter-spacing:0.1em;font-weight:500">ELEVATED RISK</div>
+        </div>
+        <div style="margin-top:8px">
+          <div class="score-bar-row">
+            <div class="score-bar-name">Commodity stress</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:82%;background:var(--red)"></div></div>
+            <div class="score-bar-val" style="color:var(--red)">82</div>
+          </div>
+          <div class="score-bar-row">
+            <div class="score-bar-name">FX / Credit stress</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:71%;background:var(--amber)"></div></div>
+            <div class="score-bar-val" style="color:var(--amber)">71</div>
+          </div>
+          <div class="score-bar-row">
+            <div class="score-bar-name">News sentiment</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:75%;background:var(--amber)"></div></div>
+            <div class="score-bar-val" style="color:var(--amber)">75</div>
+          </div>
+          <div class="score-bar-row">
+            <div class="score-bar-name">Prediction markets</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:55%;background:var(--blue)"></div></div>
+            <div class="score-bar-val" style="color:var(--blue)">55</div>
+          </div>
+          <div class="score-bar-row">
+            <div class="score-bar-name">Shipping disruption</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:63%;background:var(--amber)"></div></div>
+            <div class="score-bar-val" style="color:var(--amber)">63</div>
+          </div>
+          <div class="score-bar-row">
+            <div class="score-bar-name">Bond / rate stress</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:48%;background:var(--blue)"></div></div>
+            <div class="score-bar-val" style="color:var(--blue)">48</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Signal Weights & Methodology</div>
+          <div class="panel-badge">configurable</div>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);line-height:1.8;margin-bottom:12px">
+          Composite = Σ(signal_z × weight) normalized to 0–100.<br>
+          z-scores computed on 90-day rolling window (FRED/Yahoo data).
+        </div>
+        <div class="signal-row"><div class="signal-name">Commodity stress weight</div><div class="signal-value">25%</div></div>
+        <div class="signal-row"><div class="signal-name">FX / credit stress weight</div><div class="signal-value">20%</div></div>
+        <div class="signal-row"><div class="signal-name">News intensity weight</div><div class="signal-value">20%</div></div>
+        <div class="signal-row"><div class="signal-name">Prediction markets weight</div><div class="signal-value">15%</div></div>
+        <div class="signal-row"><div class="signal-name">Shipping disruption weight</div><div class="signal-value">10%</div></div>
+        <div class="signal-row"><div class="signal-name">Bond / rate stress weight</div><div class="signal-value">10%</div></div>
+        <div style="margin-top:14px;background:var(--bg3);padding:10px;border:1px solid var(--border);font-size:10px;color:var(--text-dim);line-height:1.7">
+          <div style="color:var(--teal);font-size:9px;letter-spacing:0.15em;margin-bottom:4px">PYTHON · IMPLEMENTATION NOTE</div>
+          <div>Signal z-scores are normalized to [0,1] range then scaled by weight. Cluster bonus (+5pts) applied when ≥3 commodity signals cross 1.5σ simultaneously. Score smoothed with 3-day EMA to reduce noise.</div>
+        </div>
+        <div style="margin-top:12px">
+          <div class="panel-title" style="margin-bottom:8px">Historical score levels</div>
+          <div class="signal-row"><div class="signal-name" style="color:var(--green)">0–30 · Low risk</div><div class="signal-value" style="color:var(--green)">green</div></div>
+          <div class="signal-row"><div class="signal-name" style="color:var(--blue)">30–50 · Moderate</div><div class="signal-value" style="color:var(--blue)">blue</div></div>
+          <div class="signal-row"><div class="signal-name" style="color:var(--amber)">50–70 · Elevated</div><div class="signal-value" style="color:var(--amber)">amber</div></div>
+          <div class="signal-row"><div class="signal-name" style="color:var(--red)">70–100 · Critical</div><div class="signal-value" style="color:var(--red)">red</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ============ CLOCK ============
+function updateClock() {
+  const now = new Date();
+  const t = now.toUTCString().split(' ')[4];
+  document.getElementById('clock-time').textContent = t;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ============ TABS ============
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ============ SPARKLINES ============
+function drawSparkline(canvasId, data, color) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.offsetWidth || 200;
+  canvas.width = w * dpr;
+  canvas.height = 48 * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const pad = 4;
+  const H = 44;
+  const W = w;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  data.forEach((v, i) => {
+    const x = (i / (data.length - 1)) * (W - pad*2) + pad;
+    const y = H - ((v - min) / range) * (H - pad*2) - pad;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, color + '44');
+  grad.addColorStop(1, color + '00');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  data.forEach((v, i) => {
+    const x = (i / (data.length - 1)) * (W - pad*2) + pad;
+    const y = H - ((v - min) / range) * (H - pad*2) - pad;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.lineTo(W - pad, H);
+  ctx.lineTo(pad, H);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function randWalk(n, start, vol, trend=0) {
+  let v = start; const arr = [];
+  for (let i=0;i<n;i++) { v += (Math.random()-0.48)*vol + trend; arr.push(v); }
+  return arr;
+}
+
+const brentData = randWalk(30, 84, 2.5, 0.4);
+const goldData = randWalk(30, 2200, 18, 3.5);
+const spreadData = randWalk(30, 165, 5, 1.1);
+const scoreData = randWalk(30, 52, 3, 0.5);
+
+window.addEventListener('load', () => {
+  drawSparkline('spark-brent', brentData, '#ff4444');
+  drawSparkline('spark-gold', goldData, '#ffaa00');
+  drawSparkline('spark-spread', spreadData, '#ff4444');
+  drawSparkline('spark-score', scoreData, '#00ccd4');
+  drawRiskChart();
+  buildHeatmap();
+  buildCalendar();
+  buildAlertLog();
+  buildCorrMatrix();
+});
+
+// ============ RISK CHART ============
+function drawRiskChart() {
+  const canvas = document.getElementById('risk-chart');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth || 400;
+  const H = 180;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const data = scoreData.map(v => Math.max(20, Math.min(95, v)));
+  const min=20, max=95;
+  const pad = {t:10, b:24, l:30, r:10};
+  const iW = W - pad.l - pad.r;
+  const iH = H - pad.t - pad.b;
+
+  // zones
+  [[70,95,'#ff444411'],[50,70,'#ffaa0011'],[20,50,'#4488ff11']].forEach(([lo,hi,col]) => {
+    const y1 = pad.t + iH - ((hi-min)/(max-min))*iH;
+    const y2 = pad.t + iH - ((lo-min)/(max-min))*iH;
+    ctx.fillStyle = col;
+    ctx.fillRect(pad.l, y1, iW, y2-y1);
+  });
+
+  // grid lines
+  ctx.strokeStyle = '#1e2530'; ctx.lineWidth = 0.5;
+  [30,50,70].forEach(v => {
+    const y = pad.t + iH - ((v-min)/(max-min))*iH;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l+iW, y); ctx.stroke();
+    ctx.fillStyle = '#5a6a7a'; ctx.font = '9px IBM Plex Mono';
+    ctx.fillText(v, 2, y+3);
+  });
+
+  // line
+  ctx.strokeStyle = '#00ccd4'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  data.forEach((v, i) => {
+    const x = pad.l + (i/(data.length-1))*iW;
+    const y = pad.t + iH - ((v-min)/(max-min))*iH;
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // fill
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0, '#00ccd433'); grad.addColorStop(1, '#00ccd400');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  data.forEach((v, i) => {
+    const x = pad.l + (i/(data.length-1))*iW;
+    const y = pad.t + iH - ((v-min)/(max-min))*iH;
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.lineTo(pad.l+iW, pad.t+iH); ctx.lineTo(pad.l, pad.t+iH); ctx.closePath();
+  ctx.fill();
+
+  // x labels
+  ctx.fillStyle = '#5a6a7a'; ctx.font = '9px IBM Plex Mono';
+  ['30D ago','15D ago','Today'].forEach((label, i) => {
+    const x = pad.l + (i/2)*iW;
+    ctx.fillText(label, x - (i===2?32:i===1?22:0), H-4);
+  });
+}
+
+// ============ HEATMAP ============
+function buildHeatmap() {
+  const regions = ['Middle East','Europe','EM Asia','Latin AM','Africa','Russia/CIS'];
+  const signals = ['Energy','FX','Trade','Credit','News'];
+  const scores = [
+    [9,7,6,8,9],[4,7,3,6,7],[3,4,8,4,5],[5,6,3,5,4],[4,3,4,3,6],[6,5,3,5,7]
+  ];
+  const colors = (v) => v>=8?'var(--red)':v>=6?'var(--amber)':v>=4?'var(--blue)':'var(--green)';
+  const bgColors = (v) => v>=8?'var(--red-dim)':v>=6?'var(--amber-dim)':v>=4?'var(--blue-dim)':'var(--green-dim)';
+
+  let html = `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:10px">
+    <tr><th style="padding:6px 8px;text-align:left;color:var(--text-dim);font-weight:400;border-bottom:1px solid var(--border)">Region</th>`;
+  signals.forEach(s => {
+    html += `<th style="padding:6px 8px;text-align:center;color:var(--text-dim);font-weight:400;border-bottom:1px solid var(--border)">${s}</th>`;
+  });
+  html += `<th style="padding:6px 8px;text-align:center;color:var(--text-dim);font-weight:400;border-bottom:1px solid var(--border)">AVG</th></tr>`;
+
+  regions.forEach((reg, ri) => {
+    const avg = (scores[ri].reduce((a,b)=>a+b,0)/scores[ri].length).toFixed(1);
+    html += `<tr><td style="padding:6px 8px;color:var(--text);border-bottom:1px solid var(--border)">${reg}</td>`;
+    scores[ri].forEach(v => {
+      html += `<td style="padding:4px 8px;text-align:center;border-bottom:1px solid var(--border)">
+        <div style="display:inline-block;width:32px;padding:3px 0;background:${bgColors(v)};color:${colors(v)};font-weight:500">${v}</div></td>`;
+    });
+    html += `<td style="padding:6px 8px;text-align:center;color:${colors(parseFloat(avg))};font-weight:500;border-bottom:1px solid var(--border)">${avg}</td></tr>`;
+  });
+  html += '</table></div>';
+  document.getElementById('heatmap-region').innerHTML = html;
+}
+
+// ============ CORRELATION MATRIX ============
+function buildCorrMatrix() {
+  const labels = ['Oil','Gold','Wheat','BDI','FX Stress','Bond Spd'];
+  const corr = [
+    [1.00, 0.72, 0.61, -0.44, 0.68, 0.51],
+    [0.72, 1.00, 0.55, -0.31, 0.74, 0.44],
+    [0.61, 0.55, 1.00, -0.22, 0.49, 0.38],
+    [-0.44,-0.31,-0.22, 1.00, -0.38, -0.29],
+    [0.68, 0.74, 0.49, -0.38, 1.00, 0.62],
+    [0.51, 0.44, 0.38, -0.29, 0.62, 1.00]
+  ];
+  const cellColor = (v) => {
+    if (v === 1) return '#1e2530';
+    if (v > 0.6) return '#ff444433';
+    if (v > 0.3) return '#ffaa0022';
+    if (v < -0.3) return '#4488ff33';
+    return 'transparent';
+  };
+  const textColor = (v) => v > 0.5 ? 'var(--red)' : v > 0.3 ? 'var(--amber)' : v < -0.3 ? 'var(--blue)' : 'var(--text-dim)';
+  let html = `<div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:9px;width:100%">
+    <tr><td></td>`;
+  labels.forEach(l => html += `<th style="padding:3px 4px;color:var(--text-dim);font-weight:400;text-align:center;white-space:nowrap">${l}</th>`);
+  html += '</tr>';
+  corr.forEach((row, ri) => {
+    html += `<tr><th style="padding:3px 6px;color:var(--text-dim);font-weight:400;text-align:right;white-space:nowrap">${labels[ri]}</th>`;
+    row.forEach(v => {
+      html += `<td style="padding:3px 4px;text-align:center;background:${cellColor(v)};color:${textColor(v)}">${v.toFixed(2)}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</table></div>';
+  document.getElementById('corr-matrix').innerHTML = html;
+}
+
+// ============ CALENDAR ============
+function buildCalendar() {
+  const elections = [
+    {date:'May 9', days:9, title:'Philippines Midterm Elections', region:'SEA', type:'medium', note:'Peso & regional equity watch'},
+    {date:'Jun 8', days:39, title:'Colombia Regional Referendum', region:'LatAm', type:'medium', note:'Fiscal reform vote'},
+    {date:'Sep 14', days:137, title:'Germany Federal Election', region:'EU', type:'critical', note:'Coalition outcomes affect EU fiscal policy'},
+    {date:'Oct 5', days:158, title:'Chile Presidential Runoff', region:'LatAm', type:'high', note:'Lithium policy key variable'},
+    {date:'Nov 2026', days:200, title:'Taiwan Local Elections', region:'Asia', type:'high', note:'Bellwether for cross-strait tensions'},
+  ];
+  const cb = [
+    {date:'May 7', days:7, title:'Fed FOMC Meeting', region:'US', type:'critical', note:'Rate decision + dot plot'},
+    {date:'May 8', days:8, title:'ECB Governing Council', region:'EU', type:'high', note:'QT timeline review'},
+    {date:'May 15', days:15, title:'Bank of Japan Policy Meeting', region:'Japan', type:'medium', note:'Yen dynamics watch'},
+    {date:'Jun 4', days:35, title:'Fed FOMC Meeting', region:'US', type:'critical', note:'Crucial for H2 rate path'},
+    {date:'Jun 12', days:43, title:'ECB Meeting', region:'EU', type:'high', note:'Possible cut decision'},
+  ];
+  const geo = [
+    {date:'May 19–21', days:19, title:'G7 Summit — Puglia, Italy', region:'Multilateral', type:'high', note:'Ukraine, China trade on agenda'},
+    {date:'Jun 26–27', days:57, title:'NATO Foreign Ministers Meeting', region:'Multilateral', type:'critical', note:'Defense spending, Article 5 review'},
+    {date:'Jul 9', days:70, title:'US-China Trade Review Deadline', region:'US/China', type:'high', note:'Tariff schedule decision'},
+    {date:'Sep 22', days:145, title:'UN General Assembly opens', region:'Multilateral', type:'medium', note:'Key bilateral sideline meetings'},
+    {date:'Nov 10', days:194, title:'G20 Summit — Johannesburg', region:'Multilateral', type:'high', note:'EM debt restructuring, climate finance'},
+  ];
+
+  function renderList(items, id) {
+    const html = items.map(e => `
+      <div class="event-item ${e.type}">
+        <div class="event-date">
+          <div class="event-date-main">${e.date}</div>
+          <div class="event-date-days">T−${e.days}d</div>
+        </div>
+        <div class="event-body">
+          <div class="event-title">${e.title}</div>
+          <div class="event-meta">
+            <span>${e.region}</span>
+            <span>·</span>
+            <span>${e.note}</span>
+          </div>
+        </div>
+        <div class="event-tag ${e.type}">${e.type.toUpperCase()}</div>
+      </div>
+    `).join('');
+    document.getElementById(id).innerHTML = html;
+  }
+  renderList(elections, 'elections-list');
+  renderList(cb, 'cb-list');
+  renderList(geo, 'geo-list');
+}
+
+// ============ ALERTS LOG ============
+function buildAlertLog() {
+  const alerts = [
+    {sev:'HIGH', time:'14:32', signal:'Brent Crude', msg:'Crossed <strong>+2.8σ</strong> on 90D rolling window. Current $97.40 vs avg $84.20. GDELT ME coverage corroborates.'},
+    {sev:'HIGH', time:'11:18', signal:'EU IT/DE Spread', msg:'198bp — 3-month high. Up <strong>+22bp</strong> over past month. ECB meeting in 8 days.'},
+    {sev:'MED', time:'09:44', signal:'Wheat', msg:'Crossed <strong>+1.7σ</strong>. Black Sea shipping disruption cited in GDELT agricultural index.'},
+    {sev:'MED', time:'09:44', signal:'Cluster trigger', msg:'3 commodity signals simultaneously above 1.5σ. <strong>Bonus score +5pts</strong> applied to composite.'},
+    {sev:'MED', time:'Yesterday', signal:'USD/TRY', msg:'<strong>+1.5σ</strong> spike. CBRT intervention expected; political pressure on monetary policy noted.'},
+    {sev:'MED', time:'Yesterday', signal:'Gold', msg:'Crossed <strong>+1.9σ</strong>. Safe haven bid consistent with ME geopolitical tension thesis.'},
+    {sev:'LOW', time:'2 days ago', signal:'Baltic Dry Index', msg:'Brief −0.6σ dip. Normalised. Watch for Suez rerouting to suppress BDI structurally.'},
+    {sev:'LOW', time:'3 days ago', signal:'Henry Hub Gas', msg:'Seasonal uptick +0.5σ. Below threshold but flagged for monitoring alongside EU LNG demand.'},
+  ];
+  const html = alerts.map(a => `
+    <div class="alert-log-item">
+      <div class="alert-sev ${a.sev}">${a.sev}</div>
+      <div class="alert-log-text"><strong>${a.signal}</strong> — ${a.msg}</div>
+      <div class="alert-log-time">${a.time}</div>
+    </div>
+  `).join('');
+  document.getElementById('alert-log').innerHTML = html;
+}
+
+// ============ LIVE DATA JITTER ============
+function jitter() {
+  const el = (id) => document.getElementById(id);
+  const brent = (93 + Math.random()*5).toFixed(2);
+  const bdi = Math.round(1800 + Math.random()*100);
+  const fx = (2.1 + Math.random()*0.4).toFixed(2);
+  if(el('kpi-brent')) el('kpi-brent').textContent = '$'+brent;
+  if(el('s-brent')) el('s-brent').textContent = '$'+brent;
+  if(el('kpi-bdi')) el('kpi-bdi').textContent = bdi.toLocaleString();
+  if(el('s-bdi')) el('s-bdi').textContent = bdi.toLocaleString();
+  if(el('kpi-fx')) el('kpi-fx').textContent = fx;
+}
+setInterval(jitter, 8000);
+</script>
+</body>
+</html>
